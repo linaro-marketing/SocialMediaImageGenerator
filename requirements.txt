@@ -76,10 +76,10 @@ python-dateutil==2.7.3
 python-debian==0.1.32
 python-frontmatter==0.4.2
 pytz==2018.4
-pyxdg==0.25
-PyYAML==3.13
+pyxdg>=0.26
+PyYAML>=4.2b1
 reportlab==3.4.0
-requests==2.18.4
+requests==2.20.0
 requests-unixsocket==0.1.5
 roman==2.0.0
 rsa==3.4.2
@@ -95,7 +95,7 @@ ubuntu-drivers-common==0.0.0
 ufw==0.35
 unattended-upgrades==0.1
 uritemplate==3.0.0
-urllib3==1.22
+urllib3>=1.24.2
 usb-creator==0.3.3
 vboxapi==1.0
 virtualenv==15.1.0

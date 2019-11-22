@@ -13,6 +13,7 @@ import ast
 import re
 from slugify import slugify
 from urllib.parse import urlparse
+from secrets import SCHED_API_KEY
 
 class SocialMediaImageAutomation:
     """
@@ -35,7 +36,7 @@ class SocialMediaImageAutomation:
         # Circle Thumbnail Size
         self.circle_thumb_size = (300, 300)
         # Sched.com API Key
-        self.API_KEY = ""
+        self.API_KEY = SCHED_API_KEY
         # Path to the speaker photos
         self._photos_path = "photos/"
         self.speaker_image_path = "/assets/images/speakers/san19/"
@@ -50,8 +51,9 @@ class SocialMediaImageAutomation:
         # self._sessions_data = self.grab_session_data_from_csv()
         # Grab session data from sched.com api
         self._sessions_data = self.grab_session_data_from_sched()
-        self._users_data = self.grab_users_data_from_sched()
-        self._sessions_data =  self.generate_revised_sessions(self._users_data)
+        self.users = {}
+        self.grab_users_data_from_sched()
+        self._sessions_data =  self.generate_revised_sessions(self.users)
 
         # Youtube Thumbnail Image URl
         self.youtube_thumbnail_image = "https://img.youtube.com/vi/{0}/sddefault.jpg"
@@ -156,9 +158,8 @@ class SocialMediaImageAutomation:
                     session_speakers_arr = []
                     for speaker in session_speakers:
                         speaker_name = speaker.strip()
-                        for speaker_object in users_data:
-                            if speaker_object["name"] == speaker_name:
-                                session_speakers_arr.append(speaker_object)
+                        speaker = users_data[speaker_name]
+                        session_speakers_arr.append(speaker)
                     session_speakers_arr =  self.download_speaker_images(session_speakers_arr)
                 else:
                     with open("missing_speakers.txt", "a+") as my_file:
@@ -227,11 +228,38 @@ class SocialMediaImageAutomation:
         sessions = self.get_api_results("/api/session/list?api_key={0}&since=1282755813&format=json")
         return sessions
 
+    def add_user(self, user):
+        self.users[user["name"]] = {
+            "username": (user["username"]),
+            "avatar": user["avatar"],
+            "name": user["name"],
+            "location": user["location"],
+            "company": user["company"],
+            "position": user["position"]
+        }
+        return True
+
+    def merge_user(self, user):
+        key = user["name"]
+        user_to_modify = self.users[key]
+        if user_to_modify["avatar"] != user["avatar"] and user["avatar"] != "":
+            user_to_modify["avatar"] = user["avatar"]
+        if user_to_modify["company"] != user["company"] and user["company"] != "":
+            user_to_modify["company"] = user["company"]
+        if user_to_modify["position"] != user["position"] and user["position"] != "":
+            user_to_modify["position"] = user["position"]
+        return True
+
     def grab_users_data_from_sched(self):
         """
         Grabs the users data from sched.com api
         """
         users_data =  self.get_api_results("/api/user/list?api_key={0}&format=json")
+        for user in users_data:
+            if user["name"] not in self.users:
+                self.add_user(user)
+            else:
+                self.merge_user(user)
         return users_data
 
     def get_speaker_bio(self, speaker):
@@ -411,6 +439,7 @@ class SocialMediaImageAutomation:
             title = session["title"]
             speakers = session['session_speakers']
             session_id = session["session_id"]
+
             tracks = session["tags"]
 
             if self._verbose:

@@ -1,3 +1,11 @@
 secrets.py
 output/*
 photos/*
+assets/*
+!assets/fonts/*
+!assets/templates/*
+__pycache__/*
+social_image_generator/__pycache__/*
+venv
+examples/*
+!examples/sched.py

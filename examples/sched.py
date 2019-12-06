@@ -243,30 +243,102 @@ class ConnectImageGenerator:
             'path': '/assets/images/featured-images/san19/SAN19-100K1.png', 'featured': 'true'}, 'session_room': 'Pacific Room (Keynote)', 'session_slot': {'start_time': '2019-09-23 10:00:00', 'end_time': '2019-09-23 10:45:00'}, 'tags': ['Keynote'], 'categories': ['san19'], 'session_track': 'Keynote', 'session_attendee_num': '154', 'tag': 'session'}
         print(test_session)
         speakers_list = test_session["session_speakers"]
-
         # Create the image options dictionary
         image_options = {
             "file_name": test_session["session_id"],
             "elements" : {
-                "text": [{
-                    "multiline": "True",
-                    "centered": "True",
-                    "wrap_width": 28,
-                    "value": "test",
-                    "position": {
-                        "x": [920,970],
-                        "y": 400
+                "images": [
+                    {
+                        "dimensions": {
+                            "x": 300,
+                            "y": 300
+                        },
+                        "position": {
+                            "x": 820,
+                            "y": 80
+                        },
+                        "image_name": test_session["session_speakers"][0]["speaker_image"],
+                        "circle": "True"
+                    }
+                ],
+                "text": [
+                    {
+                        "multiline": "True",
+                        "centered": "True",
+                        "wrap_width": 28,
+                        "value": "test",
+                        "position": {
+                            "x": [920,970],
+                            "y": 400
+                        },
+                        "font": {
+                            "size": 32,
+                            "family": "fonts/Lato-Regular.ttf",
+                            "colour": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            }
+                        }
                     },
-                    "font": {
-                        "size": "32",
-                        "family": "fonts/Lato-Regular.ttf",
-                        "colour": {
-                            "r": 255,
-                            "g": 255,
-                            "b": 255
+                    {
+                        "multiline": "False",
+                        "centered": "False",
+                        "wrap_width": 28,
+                        "value": test_session["session_id"],
+                        "position": {
+                            "x": 80,
+                            "y": 340
+                        },
+                        "font": {
+                            "size": 48,
+                            "family": "fonts/Lato-Bold.ttf",
+                            "colour": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            }
+                        }
+                    },
+                    {
+                        "multiline": "False",
+                        "centered": "False",
+                        "wrap_width": 28,
+                        "value": test_session["tags"][0],
+                        "position": {
+                            "x": 80,
+                            "y": 400
+                        },
+                        "font": {
+                            "size": 28,
+                            "family": "fonts/Lato-Bold.ttf",
+                            "colour": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            }
+                        }
+                    },
+                    {
+                        "multiline": "True",
+                        "centered": "False",
+                        "wrap_width": 28,
+                        "value": test_session["title"],
+                        "position": {
+                            "x": 80,
+                            "y": 440
+                        },
+                        "font": {
+                            "size": 48,
+                            "family": "fonts/Lato-Bold.ttf",
+                            "colour": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            }
                         }
                     }
-                }],
+                ],
             }
         }
         # Generate the image for each sesssion

@@ -17,9 +17,7 @@ from secrets import SCHED_API_KEY
 
 class SocialImageGenerator:
     """
-    This class is used to generate social media images based on a CSV outputs from
-    pathable. It combines the users export and the sessions export to create social
-    share images for the website and social media promotion.
+    This class allows you to create an image based on a set of options.
     """
 
     def __init__(self, options):
@@ -98,9 +96,24 @@ class SocialImageGenerator:
         return(file_name + ext)
 
 
-    def add_image(self, social_image_canvas, options):
+    def draw_image(self, options):
         """Adds an image to the social_image_canvas object"""
 
+        if "position" in options:
+            coords = (options["position"]["x"], options["position"]["y"])
+        if "dimensions" in options:
+            dimensions = (options["dimensions"]["x"], options["dimensions"]["y"])
+        if "image_name" in options:
+            image_name = options["image_name"]
+        if "circle" in options:
+            if options["circle"] == "True":
+                circle_thumb = True
+
+        if circle_thumb:
+            image_to_paste = self.create_circle_thumbnail(
+                self._assets_path + "images/" + image_name, dimensions)
+
+        return image_to_paste
 
     def draw_text(self, social_image_canvas, options):
 
@@ -204,10 +217,10 @@ class SocialImageGenerator:
                 for text_element in elements:
                     social_image_canvas = self.draw_text(
                         social_image_canvas, text_element)
-            # elif element == "image":
-            #     social_image_canvas = self.draw_image(
-            #         social_image_canvas, element_options)
-
+            elif element == "images":
+                for image_element in elements:
+                    new_image = self.draw_image(image_element)
+                    social_image.paste(new_image, (image_element["position"]["x"],image_element["position"]["y"]), new_image)
         # Save the new image
         output_file = self.output_path + options["file_name"] + ".png"
         if self._verbose:
@@ -216,139 +229,18 @@ class SocialImageGenerator:
         social_image.save(
             output_file, quality=100, format="png")
 
-
-
-    def create_social_media_images(self, media_template):
-        """Generates the social media images for a given media template based
-        on the sessions and users data collected in the constructor"""
-        # Iterate through each session in the sessions data
-        for session in self._sessions_data:
-            # Grab session info from dictionary
-            title = session["title"]
-            speakers = session['session_speakers']
-            session_id = session["session_id"]
-
-            tracks = session["tags"]
-
-            if self._verbose:
-                print("Generating image for {}...".format(session_id))
-                print(session)
-
-            # tracks = tracks.replace(";",", ")
-            # tracks.rsplit(", ")[0]
-            # tracks_list = tracks.split(",")
-
-            # speaker_emails = speakers.split(",")
-            # # Collect speaker info for each email in speaker_emails
-            # speaker_list = []
-            # for email in speaker_emails:
-            #     for user in self._users_data:
-            #         if email == user["speaker_email"]:
-            #             speaker_list.append(user)
-
-            # Check to see if the length of the speakers array is greater than 1
-            # If length is 1 then create a circular thumbnail and paste on background image
-            if speakers:
-                # Create circlar thumbnail
-                circle_thumb = self.create_circle_thumbnail(
-                    self._photos_path + speakers[0]["speaker_image"])
-            else:
-                circle_thumb = False
-            # # Open the media template e.g YVR18 placeholder background
-            #
-            # # If Circular thumbnail exists then past on background
-            if circle_thumb:
-                background_image.paste(
-                    circle_thumb, self.photo_offset, circle_thumb)
-            # # Get the draw object from ImageDraw.Draw() method
-            background_image_draw = ImageDraw.Draw(background_image)
-            # Check if the media_template is a valid type specified in self.types
-            if media_template in self._types:
-                if media_template == self._types[0]:
-                    # Collect string with all speakers and job titles.
-                    names_of_speakers = ""
-                    # Count the number of speakers
-                    speaker_count = 0
-                    for speaker in session['session_speakers']:
-                        speaker_name_string = speaker["speaker_name"]
-                        if speaker["speaker_position"]:
-                            speaker_name_string = speaker_name_string + \
-                                ", " + speaker["speaker_position"]
-                            if speaker["speaker_company"]:
-                                speaker_name_string = speaker_name_string + \
-                                    " at " + speaker["speaker_company"]
-                        elif len(speaker["speaker_company"]) > 2:
-                            speaker_name_string = speaker_name_string + \
-                                " at " + speaker["speaker_company"]
-
-                        names_of_speakers = names_of_speakers + \
-                            "{0}, ".format(speaker_name_string)
-                        speaker_count += 1
-                    print(names_of_speakers)
-                    # print("Not Split: ", names_of_speakers)
-                    if names_of_speakers.endswith(', '):
-                        names_of_speakers = names_of_speakers[:-2]
-                    # print("Split: ", names_of_speakers)
-                    # Write the names to the background image
-
-
-
-
-                    # if len(names_of_speakers) > 30:
-                    #     background_image_draw = self.write_text(background_image_draw, names_of_speakers, [
-                    #                                             [920, 970], 400], 22, self.fonts["regular"], self.colours["white"], centered=True, multiline=True)
-                    # else:
-                    #     background_image_draw = self.write_text(background_simage_draw, names_of_speakers, [
-                    #                                             [920, 970], 400], 22, self.fonts["regular"], self.colours["white"], centered=True, multiline=True)
-
-
-
-
-
-
-                    # Add the session ID to the background image
-                    if "SAN19" in session_id:
-                        background_image_draw = self.write_text(background_image_draw, session_id, [
-                                                                80, 340], 48, self.fonts["bold"], self.colours["white"], centered=False, multiline=False)
-
-                    # Add the tracks
-                    background_image_draw = self.write_text(background_image_draw, tracks[0], [
-                                                            80, 400], 28, self.fonts["bold"], self.colours["white"], centered=False, multiline=False)
-
-                    # Add the title to the background image
-                    if len(title) < 40:
-                        background_image_draw = self.write_text(background_image_draw, title, [
-                                                                80, 440], 48, self.fonts["bold"], self.colours["white"], centered=False, multiline=True)
-                    else:
-                        background_image_draw = self.write_text(background_image_draw, title, [
-                                                                80, 440], 44, self.fonts["bold"], self.colours["white"], centered=False, multiline=True)
-
-                    # Create the output file name from the session_id and the output_path
-                    output_file = self.output_path + session_id + ".png"
-                    if self._verbose:
-                        print(output_file)
-                    # Write the output file
-                    background_image.save(
-                        output_file, quality=100, format="png")
-                else:
-                    print("media_tempalte not in self._types")
-            else:
-                print("No media template")
-
-        return True
-
-    def create_circle_thumbnail(self, file_name):
+    def create_circle_thumbnail(self, file_path, dimensions):
         """Creates a ciruclar thumbnail given a file name of an image"""
         # Open the speaker image to generate the circular thumb.
-        image_obj = Image.open(file_name).convert("RGBA")
+        image_obj = Image.open(file_path).convert("RGBA")
         # Create a circle thumbnail file name
-        circle_thumbnail_file_name = '{0}-{1}.png'.format(file_name, "circle")
+        circle_thumbnail_file_name = '{0}-{1}.png'.format(file_path, "circle")
         # Create a new circle thumb mask
-        mask = Image.new('L', self.circle_thumb_size, 0)
+        mask = Image.new('L', dimensions, 0)
         # Instantiate Draw() for mask.
         draw = ImageDraw.Draw(mask)
         # Draw a circle with set size and fill.
-        draw.ellipse((0, 0) + self.circle_thumb_size, fill=255)
+        draw.ellipse((0, 0) + dimensions, fill=255)
         # Fit the image to the mask
         circle_thumbnail = ImageOps.fit(
             image_obj, mask.size, centering=(0.5, 0.5))

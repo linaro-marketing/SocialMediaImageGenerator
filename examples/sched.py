@@ -249,6 +249,11 @@ class ConnectImageGenerator:
             "elements" : {
                 "images": [
                     {
+                        "background_image": "True",
+                        "image_name": "background_image_test.jpg",
+                        "circle": "False"
+                    },
+                    {
                         "dimensions": {
                             "x": 300,
                             "y": 300

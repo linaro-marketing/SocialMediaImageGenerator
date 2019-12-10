@@ -12,7 +12,6 @@ import pickle
 import ast
 import re
 from urllib.parse import urlparse
-from secrets import SCHED_API_KEY
 
 
 class SocialImageGenerator:

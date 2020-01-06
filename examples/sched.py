@@ -6,6 +6,8 @@ sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
 import requests
 from social_image_generator import SocialImageGenerator
+from sched_data_interface import SchedDataInterface
+
 from secrets import SCHED_API_KEY
 
 class ConnectImageGenerator:
@@ -18,7 +20,7 @@ class ConnectImageGenerator:
         self.API_KEY = SCHED_API_KEY
         # Setup a new instance of the SocialImageGenerator object
         self.social_image_generator = SocialImageGenerator(
-            {"output": "output", "template": "/home/kyle/Documents/scripts_and_snippets/ConnectScripts/SocialMediaImageGenerator/assets/templates/san19-placeholder.jpg"})
+            {"output": "output", "template": "/home/kyle/Documents/scripts_and_snippets/ConnectAutomation/social_image_generator/assets/templates/san19-placeholder.jpg"})
         self.connect_code = "san19"
         self.sched_url = "https://linaroconnectsandiego.sched.com"
         # Users
@@ -30,7 +32,10 @@ class ConnectImageGenerator:
         # self._sessions_data = self.generate_revised_sessions(self.users)
         # Event Hashtag
         self.event_hash_tag = "#YVR18"
-        self.generate(self._sessions_data)
+        data_interface = SchedDataInterface(
+            "https://linaroconnectsandiego.sched.com", SCHED_API_KEY, "SAN19")
+        json_data = data_interface.getSessionsData()
+        self.generate(json_data)
 
     def get_api_results(self, endpoint):
         """
@@ -241,113 +246,121 @@ class ConnectImageGenerator:
         # for session in sched_sessions:
         test_session = {'title': 'Opening Keynote', 'session_id': 'SAN19-100K1', 'session_speakers': [{'speaker_name': 'Li Gong', 'speaker_username': 'li.gong', 'speaker_company': 'Linaro', 'speaker_position': 'CEO', 'speaker_location': '', 'speaker_image': 'li-gong.jpg', 'speaker_bio': 'Li Gong is a globally experienced technologist and executive, with deep background in computer science, research and product development, and open source technologies. He has worked in senior leadership roles extensively in the US and in Asia, having served as President and COO at Mozilla Corporation, General Manager at Microsoft, as well as Distinguished Engineer at Sun Microsystems and Distinguished Scientist at SRI International. He graduated from Tsinghua University, Beijing, and received a PhD from University of Cambridge. In 1994 he received the Leonard G. Abraham Prize given by the IEEE Communications Society for “the most significant contribution to technical literature in the field of interest of the IEEE.”'}], 'description': 'Coming soon...', 'future_image': {
             'path': '/assets/images/featured-images/san19/SAN19-100K1.png', 'featured': 'true'}, 'session_room': 'Pacific Room (Keynote)', 'session_slot': {'start_time': '2019-09-23 10:00:00', 'end_time': '2019-09-23 10:45:00'}, 'tags': ['Keynote'], 'categories': ['san19'], 'session_track': 'Keynote', 'session_attendee_num': '154', 'tag': 'session'}
-        print(test_session)
-        speakers_list = test_session["session_speakers"]
-        # Create the image options dictionary
-        image_options = {
-            "file_name": test_session["session_id"],
-            "elements" : {
-                "images": [
-                    {
-                        "background_image": "True",
-                        "image_name": "background_image_test.jpg",
-                        "circle": "False"
-                    },
-                    {
-                        "dimensions": {
-                            "x": 300,
-                            "y": 300
+
+        for session in sched_sessions.values():
+            try:
+                for speaker in session["speakers"]:
+                    speaker_avatar_url = speaker["avatar"]
+                    if len(speaker_avatar_url) < 3:
+                        speaker["image"] = "placeholder.jpg"
+                    else:
+                        file_name = self.social_image_generator.grab_photo(
+                            speaker_avatar_url, slugify(speaker["name"]))
+                        speaker["image"] = file_name
+            except KeyError as e:
+                print(e)
+                session["speakers"] = [{"name":"","image":"placeholder.jpg"}]
+            # speakers_list = session["speakers"]
+            # Create the image options dictionary
+            image_options = {
+                "file_name": session["session_id"],
+                "elements": {
+                    "images": [
+                        {
+                            "dimensions": {
+                                "x": 300,
+                                "y": 300
+                            },
+                            "position": {
+                                "x": 820,
+                                "y": 80
+                            },
+                            "image_name": session["speakers"][0]["image"],
+                            "circle": "True"
+                        }
+                    ],
+                    "text": [
+                        {
+                            "multiline": "True",
+                            "centered": "True",
+                            "wrap_width": 28,
+                            "value": "test",
+                            "position": {
+                                "x": [920, 970],
+                                "y": 400
+                            },
+                            "font": {
+                                "size": 32,
+                                "family": "fonts/Lato-Regular.ttf",
+                                "colour": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                }
+                            }
                         },
-                        "position": {
-                            "x": 820,
-                            "y": 80
+                        {
+                            "multiline": "False",
+                            "centered": "False",
+                            "wrap_width": 28,
+                            "value": session["session_id"],
+                            "position": {
+                                "x": 80,
+                                "y": 340
+                            },
+                            "font": {
+                                "size": 48,
+                                "family": "fonts/Lato-Bold.ttf",
+                                "colour": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                }
+                            }
                         },
-                        "image_name": test_session["session_speakers"][0]["speaker_image"],
-                        "circle": "True"
-                    }
-                ],
-                "text": [
-                    {
-                        "multiline": "True",
-                        "centered": "True",
-                        "wrap_width": 28,
-                        "value": "test",
-                        "position": {
-                            "x": [920,970],
-                            "y": 400
+                        {
+                            "multiline": "False",
+                            "centered": "False",
+                            "wrap_width": 28,
+                            "value": session["event_type"],
+                            "position": {
+                                "x": 80,
+                                "y": 400
+                            },
+                            "font": {
+                                "size": 28,
+                                "family": "fonts/Lato-Bold.ttf",
+                                "colour": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                }
+                            }
                         },
-                        "font": {
-                            "size": 32,
-                            "family": "fonts/Lato-Regular.ttf",
-                            "colour": {
-                                "r": 255,
-                                "g": 255,
-                                "b": 255
+                        {
+                            "multiline": "True",
+                            "centered": "False",
+                            "wrap_width": 28,
+                            "value": session["name"],
+                            "position": {
+                                "x": 80,
+                                "y": 440
+                            },
+                            "font": {
+                                "size": 48,
+                                "family": "fonts/Lato-Bold.ttf",
+                                "colour": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                }
                             }
                         }
-                    },
-                    {
-                        "multiline": "False",
-                        "centered": "False",
-                        "wrap_width": 28,
-                        "value": test_session["session_id"],
-                        "position": {
-                            "x": 80,
-                            "y": 340
-                        },
-                        "font": {
-                            "size": 48,
-                            "family": "fonts/Lato-Bold.ttf",
-                            "colour": {
-                                "r": 255,
-                                "g": 255,
-                                "b": 255
-                            }
-                        }
-                    },
-                    {
-                        "multiline": "False",
-                        "centered": "False",
-                        "wrap_width": 28,
-                        "value": test_session["tags"][0],
-                        "position": {
-                            "x": 80,
-                            "y": 400
-                        },
-                        "font": {
-                            "size": 28,
-                            "family": "fonts/Lato-Bold.ttf",
-                            "colour": {
-                                "r": 255,
-                                "g": 255,
-                                "b": 255
-                            }
-                        }
-                    },
-                    {
-                        "multiline": "True",
-                        "centered": "False",
-                        "wrap_width": 28,
-                        "value": test_session["title"],
-                        "position": {
-                            "x": 80,
-                            "y": 440
-                        },
-                        "font": {
-                            "size": 48,
-                            "family": "fonts/Lato-Bold.ttf",
-                            "colour": {
-                                "r": 255,
-                                "g": 255,
-                                "b": 255
-                            }
-                        }
-                    }
-                ],
+                    ],
+                }
             }
-        }
-        # Generate the image for each sesssion
-        self.social_image_generator.create_image(image_options)
+            # Generate the image for each sesssion
+            self.social_image_generator.create_image(image_options)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ with open('requirements.txt') as f:
 
 setup(
     install_requires=required,
-    name='social_media_image_generator',
+    name='social_image_generator',
     version='0.1.0',
     description='This module allows you to generate social media images for your projects.',
     long_description=readme,

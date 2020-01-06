@@ -81,8 +81,10 @@ class SocialImageGenerator:
         path = urlparse(url).path
         # Get the Extension from the path using os.path.splitext
         ext = os.path.splitext(path)[1]
+        if ext != ".jpg" or ext != ".png":
+            ext = ".jpg"
         # Add output folder to output path
-        output = self._assets_path + file_name + ext
+        output = self._assets_path + "images/" + file_name + ext
         # Try to download the image and Except errors and return as false.
         try:
             opener = request.build_opener()

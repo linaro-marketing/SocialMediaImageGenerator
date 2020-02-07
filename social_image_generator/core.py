@@ -36,7 +36,7 @@ class SocialImageGenerator:
         if "template" in options:
             self.template = options["template"]
         else:
-            self.template = "/home/kyle/Documents/scripts_and_snippets/ConnectScripts/SocialMediaImageGenerator/assets/templates/san19-placeholder.jpg"
+            self.template = None
         # Set the assets path
         if "assets_path" in options:
             if not options["assets_path"].endswith("/"):
@@ -73,7 +73,7 @@ class SocialImageGenerator:
                         "grey": (153, 153, 153),
                         "linaro-blue": (70, 145, 218)}
 
-    def grab_photo(self, url, output_filename, output_path="speaker_images/"):
+    def grab_photo(self, url, output_filename, output_path="images/"):
         """Fetches attendee photo from the pathable data"""
         # Get the filename parsed in
         file_name = output_filename
@@ -83,8 +83,12 @@ class SocialImageGenerator:
         ext = os.path.splitext(path)[1]
         if ext != ".jpg" or ext != ".png":
             ext = ".jpg"
+
         # Add output folder to output path
-        output = self._assets_path + "images/" + file_name + ext
+        output_folder_path = self.output_path + output_path
+        if not os.path.exists(output_folder_path):
+            os.makedirs(output_folder_path)
+        output = output_folder_path + file_name + ext
         # Try to download the image and Except errors and return as false.
         try:
             opener = request.build_opener()
@@ -111,8 +115,7 @@ class SocialImageGenerator:
                 circle_thumb = True
 
         if circle_thumb:
-            image_to_paste = self.create_circle_thumbnail(
-                self._assets_path + "images/" + image_name, dimensions)
+            image_to_paste = self.create_circle_thumbnail("images/", image_name, dimensions, "circle_thumbs/")
 
         return image_to_paste
 
@@ -230,12 +233,22 @@ class SocialImageGenerator:
         social_image.save(
             output_file, quality=100, format="png")
 
-    def create_circle_thumbnail(self, file_path, dimensions):
+    def create_circle_thumbnail(self, src_directory, file_name, dimensions, output_directory):
         """Creates a ciruclar thumbnail given a file name of an image"""
+        output_path = self.output_path + output_directory
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+            print("{} created.".format(output_path))
+        if file_name == "placeholder.jpg":
+            full_path = self._assets_path + "images/" + file_name
+        else:
+            full_path = self.output_path + src_directory + file_name
+        output_path += file_name
         # Open the speaker image to generate the circular thumb.
-        image_obj = Image.open(file_path).convert("RGBA")
+        image_obj = Image.open(full_path).convert("RGBA")
         # Create a circle thumbnail file name
-        circle_thumbnail_file_name = '{0}-{1}.png'.format(file_path, "circle")
+        circle_thumbnail_file_name = '{0}-{1}.png'.format(
+            output_path, "circle")
         # Create a new circle thumb mask
         mask = Image.new('L', dimensions, 0)
         # Instantiate Draw() for mask.

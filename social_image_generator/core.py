@@ -24,9 +24,9 @@ class SocialImageGenerator:
         # Set the output path
         if options["output"]:
             if options["output"].endswith("/"):
-                self.output_path = os.getcwd() + "/" + options["output"]
+                self.output_path = options["output"]
             else:
-                self.output_path = os.getcwd() + "/" + options["output"] + "/"
+                self.output_path = options["output"] + "/"
         else:
             self.output_path = os.getcwd() + "/output"
         # Check to see if the output path exists and create if not
@@ -43,7 +43,7 @@ class SocialImageGenerator:
                 assets_path = options["assets_path"] + "/"
             else:
                 assets_path = options["assets_path"]
-            self._assets_path = os.getcwd() + "/" + assets_path
+            self._assets_path = assets_path
         else:
             self._assets_path = os.getcwd() + "/assets/"
 
